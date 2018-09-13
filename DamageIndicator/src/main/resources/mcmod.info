@@ -1,0 +1,16 @@
+[
+{
+  "modid": "damageindicator",
+  "name": "Damage Indicator Mod",
+  "description": "",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["ZDoctor"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
