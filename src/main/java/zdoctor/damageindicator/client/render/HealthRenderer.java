@@ -1,28 +1,38 @@
 package zdoctor.damageindicator.client.render;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
+
+import com.google.common.collect.Ordering;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.init.MobEffects;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import zdoctor.damageindicator.client.RenderHelper;
 
 public class HealthRenderer {
 
 	public static void renderHealth(RenderLivingEvent renderEntity) {
+		EntityLivingBase entity = renderEntity.getEntity();
+		if(entity.isInvisible())
+			return;
+		
 		preDraw(renderEntity);
 
 		drawHealthString(renderEntity);
 
-		EntityLivingBase entity = renderEntity.getEntity();
+		drawActivePotionEffects(renderEntity);
 
 		drawHealth(renderEntity);
 
@@ -30,7 +40,11 @@ public class HealthRenderer {
 
 	}
 
-	public static void drawHealthString(RenderLivingEvent renderEntity) {
+	protected static void drawHealthString(RenderLivingEvent renderEntity) {
+
+	}
+
+	protected static void drawActivePotionEffects(RenderLivingEvent renderEntity) {
 		EntityLivingBase entity = renderEntity.getEntity();
 		FontRenderer fontRenderer = renderEntity.getRenderer().getFontRendererFromRenderManager();
 
@@ -41,10 +55,39 @@ public class HealthRenderer {
 		String status = String.format("%d/%d", MathHelper.ceil(entity.getHealth()),
 				MathHelper.ceil(maxHealth + absorption));
 
-		fontRenderer.drawString(status, -fontRenderer.getStringWidth(status) / 2, -fontRenderer.FONT_HEIGHT, 0);
+		int width = fontRenderer.getStringWidth(status);
+
+		fontRenderer.drawString(status, -width / 2, -fontRenderer.FONT_HEIGHT, 0);
+
+		Collection<PotionEffect> collection = entity.getActivePotionEffects();
+		if (!collection.isEmpty()) {
+
+			GlStateManager.pushMatrix();
+			GlStateManager.translate(collection.size() / 2 * -9, -fontRenderer.FONT_HEIGHT * 2, 0);
+//			GlStateManager.translate(width / 2, -15 + fontRenderer.FONT_HEIGHT / 2, 0);
+			GlStateManager.scale(0.5, 0.5, 0.5);
+			RenderHelper.bindTexture(GuiContainer.INVENTORY_BACKGROUND);
+
+			List<PotionEffect> potionEffects = Ordering.natural().sortedCopy(collection);
+			for (int effect = 0; effect < potionEffects.size(); effect++) {
+				PotionEffect potioneffect = potionEffects.get(effect);
+				Potion potion = potioneffect.getPotion();
+				if (!potion.shouldRender(potioneffect))
+					continue;
+				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+//				RenderHelper.drawTexturedModalRect(0, 0, 0, 166, 140, 32);
+
+				if (potion.hasStatusIcon()) {
+					int i1 = potion.getStatusIconIndex();
+					RenderHelper.drawTexturedModalRect(effect * 18, 0, 0 + i1 % 8 * 18, 198 + i1 / 8 * 18, 18, 18);
+				}
+			}
+			GlStateManager.popMatrix();
+		}
+
 	}
 
-	public static void drawHealth(RenderLivingEvent renderEntity) {
+	protected static void drawHealth(RenderLivingEvent renderEntity) {
 		Random rand = new Random();
 		EntityLivingBase entity = renderEntity.getEntity();
 
@@ -58,7 +101,7 @@ public class HealthRenderer {
 		float maxHealth = (float) attributes.getAttributeValue();
 		float absorption = entity.getAbsorptionAmount();
 		int health = MathHelper.ceil(entity.getHealth());
-		float lasthealth = entity.getLastHealth();
+//		float lasthealth = entity.getLastHealth();
 		int rows = MathHelper.ceil((maxHealth + absorption) / 2.0F / 10.0F);
 		int rowSpacing = Math.max(10 - (rows - 2), 3);
 
@@ -100,16 +143,16 @@ public class HealthRenderer {
 
 			RenderHelper.drawTexturedModalRect(xOffset, yOffset, hurtResistant ? 25 : 16, 0, 9, 9);
 
-			if (hurtResistant) {
-				if (heart * 2 + 1 < lasthealth) {
-					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 54, 0, 9, 9);
-				}
-
-				if (heart * 2 + 1 == lasthealth) {
-					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 63, 0, 9, 9);
-				}
-
-			}
+//			if (hurtResistant) {
+//				if (heart * 2 + 1 < lasthealth) {
+//					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 54, 0, 9, 9);
+//				}
+//
+//				if (heart * 2 + 1 == lasthealth) {
+//					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 63, 0, 9, 9);
+//				}
+//
+//			}
 
 			float absorb = absorption;
 			if (absorb > 0.0F) {
@@ -136,7 +179,7 @@ public class HealthRenderer {
 
 	}
 
-	public static void preDraw(RenderLivingEvent renderEntity) {
+	protected static void preDraw(RenderLivingEvent renderEntity) {
 		EntityLivingBase entity = renderEntity.getEntity();
 
 		GlStateManager.pushMatrix();
@@ -155,7 +198,7 @@ public class HealthRenderer {
 		GlStateManager.disableDepth();
 	}
 
-	public static void postDraw(RenderLivingEvent renderEntity) {
+	protected static void postDraw(RenderLivingEvent renderEntity) {
 		GlStateManager.popMatrix();
 		GlStateManager.enableLighting();
 		GlStateManager.enableDepth();
