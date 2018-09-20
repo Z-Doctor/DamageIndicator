@@ -9,16 +9,14 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import zdoctor.damageindicator.proxy.CommonProxy;
 
 @Mod(modid = ModMain.MODID, name = ModMain.NAME, version = ModMain.VERSION, clientSideOnly = true)
-public class ModMain
-{
-    public static final String MODID = "damageindicator";
-    public static final String NAME = "Damage Indicator Mod";
-    public static final String VERSION = "1.0";
+public class ModMain {
+	public static final String MODID = "damageindicator";
+	public static final String NAME = "Damage Indicator Mod";
+	public static final String VERSION = "1.0";
 
-    @SidedProxy(clientSide = "zdoctor.damageindicator.proxy.ClientProxy", serverSide = "zdoctor.damageindicator.proxy.CommonProxy")
+	@SidedProxy(clientSide = "zdoctor.damageindicator.proxy.ClientProxy", serverSide = "zdoctor.damageindicator.proxy.CommonProxy")
 	public static CommonProxy proxy;
 
-    
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent e) {
 		proxy.preInit(e);
