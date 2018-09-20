@@ -20,27 +20,25 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import zdoctor.damageindicator.client.RenderHelper;
+import zdoctor.zcoremod.helpers.EntityHelper;
 
 public class HealthRenderer {
 
 	public static void renderHealth(RenderLivingEvent renderEntity) {
 		EntityLivingBase entity = renderEntity.getEntity();
-		if(entity.isInvisible())
+		if (entity.isInvisible())
 			return;
-		
-		preDraw(renderEntity);
 
-		drawHealthString(renderEntity);
+		if (!Minecraft.getMinecraft().player.canEntityBeSeen(entity))
+			return;
+
+		preDraw(renderEntity);
 
 		drawActivePotionEffects(renderEntity);
 
 		drawHealth(renderEntity);
 
 		postDraw(renderEntity);
-
-	}
-
-	protected static void drawHealthString(RenderLivingEvent renderEntity) {
 
 	}
 
@@ -63,7 +61,8 @@ public class HealthRenderer {
 		if (!collection.isEmpty()) {
 
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(collection.size() / 2 * -9, -fontRenderer.FONT_HEIGHT * 2, 0);
+			GlStateManager.translate(collection.size() / 2 * -9 - (collection.size() % 2) * 5,
+					-fontRenderer.FONT_HEIGHT * 2, 0);
 //			GlStateManager.translate(width / 2, -15 + fontRenderer.FONT_HEIGHT / 2, 0);
 			GlStateManager.scale(0.5, 0.5, 0.5);
 			RenderHelper.bindTexture(GuiContainer.INVENTORY_BACKGROUND);
@@ -91,7 +90,7 @@ public class HealthRenderer {
 		Random rand = new Random();
 		EntityLivingBase entity = renderEntity.getEntity();
 
-		GlStateManager.translate(-4.5 * (entity.getMaxHealth() / 2), 0, 0);
+		GlStateManager.translate(-4.5 * (entity.getMaxHealth() / 2) - (entity.getMaxHealth() % 2) * 2.5, 0, 0);
 		GlStateManager.color(1, 1, 1, 1);
 		RenderHelper.bindTexture(Gui.ICONS);
 
@@ -101,14 +100,9 @@ public class HealthRenderer {
 		float maxHealth = (float) attributes.getAttributeValue();
 		float absorption = entity.getAbsorptionAmount();
 		int health = MathHelper.ceil(entity.getHealth());
-//		float lasthealth = entity.getLastHealth();
 		int rows = MathHelper.ceil((maxHealth + absorption) / 2.0F / 10.0F);
 		int rowSpacing = Math.max(10 - (rows - 2), 3);
 
-//		if (entity.getHealth() != lasthealth)
-//			System.out.println(entity.getHealth() + ":" + lasthealth);
-
-//		System.out.println(entity.hurtResistantTime);
 		boolean hurtResistant = entity.hurtResistantTime / 3 % 2 == 1;
 		if (entity.hurtResistantTime < 10)
 			hurtResistant = false;
@@ -143,16 +137,17 @@ public class HealthRenderer {
 
 			RenderHelper.drawTexturedModalRect(xOffset, yOffset, hurtResistant ? 25 : 16, 0, 9, 9);
 
-//			if (hurtResistant) {
-//				if (heart * 2 + 1 < lasthealth) {
-//					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 54, 0, 9, 9);
-//				}
-//
-//				if (heart * 2 + 1 == lasthealth) {
-//					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 63, 0, 9, 9);
-//				}
-//
-//			}
+			float lasthealth = EntityHelper.getLastHealth(entity);
+			if (hurtResistant) {
+				if (heart * 2 + 1 < lasthealth) {
+					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 54, 0, 9, 9);
+				}
+
+				if (heart * 2 + 1 == lasthealth) {
+					RenderHelper.drawTexturedModalRect(xOffset, yOffset, heartGui + 63, 0, 9, 9);
+				}
+
+			}
 
 			float absorb = absorption;
 			if (absorb > 0.0F) {

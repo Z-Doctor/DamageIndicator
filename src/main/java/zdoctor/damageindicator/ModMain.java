@@ -18,6 +18,7 @@ public class ModMain
     @SidedProxy(clientSide = "zdoctor.damageindicator.proxy.ClientProxy", serverSide = "zdoctor.damageindicator.proxy.CommonProxy")
 	public static CommonProxy proxy;
 
+    
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent e) {
 		proxy.preInit(e);
